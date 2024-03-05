@@ -7,7 +7,7 @@ Output = [0];
 for i = 1:rows
 Dec=0;
     for j = 1:cols
-    Dec = Dec+binInput(i,j)*2^j;%数据存储格式是高位在右
+        Dec = Dec+binInput(i,j)*(2^(j-1));%数据存储格式是高位在右
     end
 Output =[Output;encoding(Dec)];
 Dec = 0;
