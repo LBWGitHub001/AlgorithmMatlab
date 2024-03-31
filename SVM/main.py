@@ -22,15 +22,19 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=256, shuffle=False)
 #%%
 #搭建SVM模型
 class SVM(nn.Module):
-    def __init__(self):
-        super(SVM, self).__init__()
-        self.fc = nn.Linear(28 * 28, 10)  # 10类输出
-
-    def forward(self, x):
+    def __init__(self,classification):
+        super(SVM,self).__init__()
+        self.fc = nn.Linear(28*28,classification)
+    def forward(self,x):
         x = x.view(x.size(0), -1)  # 将图像数据展平
-        return self.fc(x)
+        x = self.fc(x)
+        return x
 
-#%%
+#%%Hinge损失函数
+def Hinge_loss():
+    return nn.HingeEmbeddingLoss()
+
+    #%%
 #训练
 def train_svm(model, trainloader, criterion, optimizer, epochs):
     for epoch in range(epochs):
@@ -40,6 +44,9 @@ def train_svm(model, trainloader, criterion, optimizer, epochs):
             inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
+            labels = nn.functional.one_hot(labels, num_classes=10)
+            labels = labels*2-1
+            #print(outputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
@@ -64,12 +71,12 @@ def test_svm(model, testloader):
 #%%
 #开始训练
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-svm_model = SVM().to(device)
-criterion = nn.CrossEntropyLoss().to(device)
+svm_model = SVM(10).to(device)
+criterion = Hinge_loss()
 optimizer = torch.optim.SGD(svm_model.parameters(), lr=0.01)
 
 # 训练模型
-train_svm(svm_model, trainloader, criterion, optimizer, epochs=100)
+train_svm(svm_model, trainloader, criterion, optimizer, epochs=10)
 
 # 测试模型
 test_svm(svm_model, testloader)
